@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClubPartner — Le CRM des partenariats sportifs</title>
+<meta name="description" content="Gérez vos partenariats et mécénats sportifs. Prospection, contrats PDF, facturation, suivi des paiements. Fini les tableaux Excel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --navy: #0a0e27; --navy-light: #131842; --navy-mid: #1a1f4e;
+  --lime: #a3f562; --lime-dark: #7cc842; --blue: #4e7cff; --purple: #8b5cf6;
+  --white: #f0f2ff; --gray: #8890b5;
+  --card-bg: rgba(255,255,255,0.04); --card-border: rgba(255,255,255,0.08);
+  --font-display: 'Sora', sans-serif; --font-body: 'DM Sans', sans-serif;
+  --ok: #34d399; --warn: #fbbf24; --err: #f87171;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--navy); color: var(--white); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+.container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+.section { padding: 100px 0; }
+.section-label { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--lime); margin-bottom: 16px; }
+.section-title { font-family: var(--font-display); font-size: clamp(28px, 5vw, 44px); font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+.section-sub { font-size: 17px; color: var(--gray); max-width: 560px; line-height: 1.7; }
+.highlight { color: var(--lime); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(163,245,98,0.15); } 50% { box-shadow: 0 0 40px rgba(163,245,98,0.3); } }
+.anim { opacity: 0; transform: translateY(40px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+.anim.visible { opacity: 1; transform: translateY(0); }
+.anim-d1 { transition-delay: 0.1s; } .anim-d2 { transition-delay: 0.2s; } .anim-d3 { transition-delay: 0.3s; } .anim-d4 { transition-delay: 0.4s; } .anim-d5 { transition-delay: 0.5s; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; transition: all 0.35s; background: transparent; }
+nav.scrolled { background: rgba(10,14,39,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--card-border); padding: 12px 0; }
+nav .container { display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.nav-logo span { font-size: 26px; }
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a { color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.25s; }
+.nav-links a:hover { color: var(--white); }
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 50px; border: none; cursor: pointer; text-decoration: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.btn-primary { background: var(--lime); color: var(--navy); }
+.btn-primary:hover { background: var(--lime-dark); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(163,245,98,0.3); }
+.btn-ghost { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.2); }
+.btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
+.btn-large { padding: 16px 36px; font-size: 16px; }
+.nav-mobile { display: none; background: none; border: none; color: var(--white); font-size: 28px; cursor: pointer; }
+
+.hero { min-height: 100vh; display: flex; align-items: center; position: relative; padding-top: 80px; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 700px; height: 700px; background: radial-gradient(circle, rgba(163,245,98,0.06) 0%, transparent 70%); pointer-events: none; }
+.hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.hero-content { position: relative; z-index: 2; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(163,245,98,0.1); border: 1px solid rgba(163,245,98,0.2); border-radius: 50px; padding: 8px 18px; font-size: 13px; font-weight: 600; color: var(--lime); margin-bottom: 28px; animation: fadeUp 0.8s ease both; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(36px, 5.5vw, 58px); font-weight: 800; line-height: 1.1; margin-bottom: 24px; animation: fadeUp 0.8s ease 0.15s both; }
+.hero-sub { font-size: 18px; color: var(--gray); line-height: 1.7; margin-bottom: 36px; max-width: 480px; animation: fadeUp 0.8s ease 0.3s both; }
+.hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; animation: fadeUp 0.8s ease 0.45s both; }
+.hero-stats { display: flex; gap: 40px; margin-top: 48px; animation: fadeUp 0.8s ease 0.6s both; }
+.hero-stat-num { font-family: var(--font-display); font-size: 32px; font-weight: 800; }
+.hero-stat-label { font-size: 13px; color: var(--gray); margin-top: 2px; }
+.hero-visual { position: relative; z-index: 2; animation: fadeUp 1s ease 0.3s both; }
+.mockup { background: var(--navy-light); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05); animation: float 6s ease-in-out infinite; }
+.mockup-bar { background: var(--navy-mid); padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-dot:nth-child(1) { background: #ff6b6b; } .mockup-dot:nth-child(2) { background: #ffd93d; } .mockup-dot:nth-child(3) { background: #6bcb77; }
+.mockup-body { padding: 20px; }
+.m-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.m-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; }
+.m-season { font-size: 11px; background: rgba(163,245,98,0.15); color: var(--lime); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+.m-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.m-stat-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px; text-align: center; }
+.m-stat-icon { font-size: 16px; margin-bottom: 4px; }
+.m-stat-val { font-family: var(--font-display); font-size: 18px; font-weight: 800; }
+.m-stat-lbl { font-size: 9px; color: var(--gray); margin-top: 2px; }
+.m-prog { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; }
+.m-prog-title { font-size: 11px; font-weight: 600; margin-bottom: 10px; color: var(--gray); }
+.m-prog-bar { background: rgba(255,255,255,0.05); border-radius: 6px; height: 14px; overflow: hidden; }
+.m-prog-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lime), var(--blue)); }
+
+.problem { background: var(--navy-light); position: relative; }
+.problem::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--card-border), transparent); }
+.problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+.problem-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; transition: all 0.35s; }
+.problem-card:hover { border-color: rgba(255,100,100,0.3); transform: translateY(-4px); }
+.problem-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.15); }
+.problem-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.problem-card p { font-size: 14px; line-height: 1.7; color: var(--gray); }
+
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+.feature-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; transition: all 0.35s; position: relative; overflow: hidden; }
+.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--lime), var(--blue)); opacity: 0; transition: opacity 0.35s; }
+.feature-card:hover { border-color: rgba(163,245,98,0.2); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+.feature-card:hover::before { opacity: 1; }
+.feature-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; background: rgba(163,245,98,0.08); border: 1px solid rgba(163,245,98,0.12); }
+.feature-card h3 { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.feature-card p { font-size: 14px; color: var(--gray); line-height: 1.7; }
+.feature-tag { display: inline-block; margin-top: 14px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(78,124,255,0.1); color: var(--blue); border: 1px solid rgba(78,124,255,0.15); }
+
+/* DEMO */
+.demo-section { background: var(--navy-light); position: relative; overflow: hidden; }
+.demo-section::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 900px; height: 900px; background: radial-gradient(circle, rgba(163,245,98,0.03), transparent 70%); pointer-events: none; }
+.demo-wrapper { margin-top: 48px; background: var(--navy); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.5); position: relative; }
+.demo-topbar { background: linear-gradient(135deg, #1a73e8, #6c3aed); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+.demo-topbar-left { display: flex; align-items: center; gap: 12px; }
+.demo-topbar-logo { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; }
+.demo-topbar-season { font-size: 10px; background: rgba(255,255,255,0.15); color: #fff; padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); }
+.demo-topbar-right { display: flex; gap: 8px; align-items: center; }
+.demo-topbar-user { font-size: 11px; color: rgba(255,255,255,0.7); }
+.demo-topbar-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; padding: 4px 8px; font-size: 11px; }
+.demo-nav { display: flex; gap: 0; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--card-border); overflow-x: auto; padding: 0 8px; }
+.demo-nav-btn { background: none; border: none; color: var(--gray); font-family: var(--font-body); font-size: 12px; font-weight: 500; padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.25s; white-space: nowrap; }
+.demo-nav-btn:hover { color: var(--white); }
+.demo-nav-btn.active { color: var(--lime); border-bottom-color: var(--lime); font-weight: 700; }
+.demo-body { min-height: 480px; padding: 20px; position: relative; }
+.demo-tab { display: none; }
+.demo-tab.active { display: block; animation: fadeUp 0.4s ease; }
+.d-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.d-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.d-stat { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; text-align: center; }
+.d-stat-icon { font-size: 18px; margin-bottom: 4px; }
+.d-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+.d-stat-lbl { font-size: 10px; color: var(--gray); margin-top: 2px; }
+.d-flex { display: flex; justify-content: space-between; align-items: center; }
+.d-title { font-family: var(--font-display); font-size: 13px; font-weight: 700; }
+.d-bar-box { background: rgba(255,255,255,0.05); border-radius: 6px; height: 10px; overflow: hidden; margin-top: 6px; }
+.d-bar { height: 100%; border-radius: 6px; transition: width 0.8s ease; }
+.d-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 4px; }
+.d-badge-new { background: rgba(78,124,255,0.15); color: var(--blue); }
+.d-badge-interested { background: rgba(52,211,153,0.15); color: var(--ok); }
+.d-badge-rdv { background: rgba(139,92,246,0.15); color: var(--purple); }
+.d-badge-callback { background: rgba(251,191,36,0.15); color: var(--warn); }
+.d-badge-refused { background: rgba(248,113,113,0.15); color: var(--err); }
+.d-badge-part { background: rgba(78,124,255,0.1); color: var(--blue); }
+.d-badge-mec { background: rgba(139,92,246,0.1); color: var(--purple); }
+.d-badge-signed { background: rgba(52,211,153,0.15); color: var(--ok); }
+.d-badge-pending { background: rgba(251,191,36,0.15); color: var(--warn); }
+.d-badge-draft { background: rgba(255,255,255,0.08); color: var(--gray); }
+.d-badge-paid { background: rgba(52,211,153,0.15); color: var(--ok); }
+.d-badge-unpaid { background: rgba(248,113,113,0.15); color: var(--err); }
+.d-prospect { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.25s; border-left: 3px solid var(--card-border); }
+.d-prospect:hover { background: rgba(255,255,255,0.04); border-color: rgba(163,245,98,0.2); }
+.d-prospect-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+.d-prospect-name { font-weight: 700; font-size: 13px; }
+.d-prospect-sector { font-size: 11px; color: var(--gray); margin-left: 6px; }
+.d-prospect-meta { display: flex; gap: 8px; font-size: 11px; color: var(--gray); margin-top: 6px; flex-wrap: wrap; }
+.d-sm-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: var(--white); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.d-sm-btn:hover { background: rgba(255,255,255,0.1); }
+.d-sm-btn.call { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.3); }
+.d-sm-btn.call:hover { background: rgba(52,211,153,0.25); }
+.d-call-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; background: rgba(10,14,39,0.85); backdrop-filter: blur(8px); display: none; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+.d-call-overlay.open { display: flex; }
+.d-call-modal { background: var(--navy-light); border: 1px solid var(--card-border); border-radius: 16px; max-width: 760px; width: 100%; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+.d-call-header { background: var(--navy-mid); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); }
+.d-call-header h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+.d-call-close { background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: var(--white); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; }
+.d-call-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
+.d-call-phone { display: flex; align-items: center; gap: 8px; padding: 12px 18px; background: var(--ok); color: var(--navy); border-radius: 10px; font-family: var(--font-display); font-weight: 800; font-size: 18px; margin-top: 10px; }
+.d-call-script { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; max-height: 380px; overflow-y: auto; }
+.d-call-script-title { font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--blue); margin-bottom: 10px; }
+.d-call-script-line { font-size: 12px; line-height: 1.8; color: var(--gray); margin-bottom: 4px; }
+.d-call-script-line b { color: var(--white); }
+.d-call-result { grid-column: 1 / -1; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.d-call-result-title { font-family: var(--font-display); font-weight: 700; font-size: 12px; margin-bottom: 10px; }
+.d-call-textarea { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; color: var(--white); font-family: var(--font-body); font-size: 12px; resize: vertical; min-height: 50px; }
+.d-call-select { background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; color: var(--white); font-family: var(--font-body); font-size: 12px; }
+.d-call-save { background: var(--lime); color: var(--navy); border: none; border-radius: 8px; padding: 10px 20px; font-family: var(--font-display); font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; margin-top: 10px; transition: all 0.2s; }
+.d-call-save:hover { background: var(--lime-dark); }
+.d-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.d-table th { text-align: left; padding: 10px 12px; font-size: 10px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--card-border); }
+.d-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.d-table tr:hover td { background: rgba(255,255,255,0.02); }
+.d-table-right { text-align: right; }
+.d-invoice { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.d-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.d-product-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; transition: all 0.2s; }
+.d-product-card:hover { border-color: rgba(163,245,98,0.2); }
+.d-product-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.d-product-cat { font-size: 10px; color: var(--gray); }
+.d-product-price { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--lime); margin-top: 8px; }
+.d-product-stock { font-size: 11px; color: var(--gray); margin-top: 4px; }
+.d-product-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.d-product-bar-fill { height: 100%; border-radius: 2px; }
+.demo-ribbon { position: absolute; top: 14px; right: -32px; z-index: 20; background: var(--lime); color: var(--navy); font-family: var(--font-display); font-size: 10px; font-weight: 800; padding: 4px 40px; transform: rotate(45deg); letter-spacing: 1px; text-transform: uppercase; }
+.d-search { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.d-search-input { flex: 1; min-width: 150px; background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 12px; color: var(--white); font-family: var(--font-body); font-size: 12px; }
+.d-search-input::placeholder { color: var(--gray); }
+.d-search-select { background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; color: var(--white); font-family: var(--font-body); font-size: 12px; }
+
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 56px; position: relative; }
+.steps::before { content: ''; position: absolute; top: 44px; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, var(--lime), var(--blue), var(--purple)); opacity: 0.3; }
+.step { text-align: center; position: relative; }
+.step-num { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 24px; font-weight: 800; margin: 0 auto 24px; position: relative; z-index: 2; }
+.step:nth-child(1) .step-num { background: var(--lime); color: var(--navy); }
+.step:nth-child(2) .step-num { background: var(--blue); color: var(--white); }
+.step:nth-child(3) .step-num { background: var(--purple); color: var(--white); }
+.step h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.step p { font-size: 14px; color: var(--gray); line-height: 1.7; max-width: 280px; margin: 0 auto; }
+
+.testimonials { background: var(--navy-light); }
+.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+.testimonial-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; transition: all 0.35s; }
+.testimonial-card:hover { border-color: rgba(163,245,98,0.15); transform: translateY(-3px); }
+.testimonial-quote { font-size: 15px; line-height: 1.75; color: var(--white); margin-bottom: 24px; font-style: italic; opacity: 0.9; }
+.testimonial-quote::before { content: '\201C'; font-family: var(--font-display); font-size: 48px; color: var(--lime); opacity: 0.4; line-height: 0; display: block; margin-bottom: 8px; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; }
+.testimonial-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; }
+.testimonial-role { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+.faq-list { max-width: 720px; margin: 48px auto 0; }
+.faq-item { border-bottom: 1px solid var(--card-border); }
+.faq-question { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; cursor: pointer; background: none; border: none; width: 100%; text-align: left; color: var(--white); font-family: var(--font-display); font-size: 16px; font-weight: 600; transition: color 0.25s; }
+.faq-question:hover { color: var(--lime); }
+.faq-chevron { font-size: 20px; transition: transform 0.35s; color: var(--gray); flex-shrink: 0; margin-left: 16px; }
+.faq-item.open .faq-chevron { transform: rotate(45deg); color: var(--lime); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+.faq-item.open .faq-answer { max-height: 300px; }
+.faq-answer-inner { padding-bottom: 24px; font-size: 15px; color: var(--gray); line-height: 1.75; }
+
+.final-cta { text-align: center; position: relative; overflow: hidden; }
+.final-cta::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(163,245,98,0.06), transparent 70%); pointer-events: none; }
+.final-cta-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 64px 40px; position: relative; animation: pulse-glow 4s ease-in-out infinite; }
+
+/* Pricing */
+.pricing-card {
+  background: var(--card-bg); border: 2px solid rgba(163,245,98,0.25); border-radius: 24px;
+  padding: 48px 40px; max-width: 480px; margin: 48px auto 0; position: relative; overflow: hidden;
+  text-align: center; transition: all 0.35s;
+}
+.pricing-card:hover { border-color: rgba(163,245,98,0.4); box-shadow: 0 20px 60px rgba(163,245,98,0.08); }
+.pricing-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--lime), var(--blue));
+}
+.pricing-badge {
+  display: inline-block; background: var(--lime); color: var(--navy); font-family: var(--font-display);
+  font-size: 11px; font-weight: 800; padding: 5px 16px; border-radius: 50px;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px;
+}
+.pricing-old {
+  font-family: var(--font-display); font-size: 28px; font-weight: 700;
+  color: var(--gray); text-decoration: line-through; margin-bottom: 4px;
+}
+.pricing-amount {
+  font-family: var(--font-display); font-size: 64px; font-weight: 800;
+  color: var(--white); line-height: 1;
+}
+.pricing-amount span { font-size: 24px; font-weight: 600; color: var(--gray); }
+.pricing-period { font-size: 15px; color: var(--gray); margin-top: 6px; }
+.pricing-divider { height: 1px; background: var(--card-border); margin: 28px 0; }
+.pricing-features { text-align: left; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.pricing-feature {
+  display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--white);
+}
+.pricing-check {
+  width: 22px; height: 22px; border-radius: 50%; background: rgba(163,245,98,0.12);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 12px; color: var(--lime);
+}
+
+/* Modals */
+.lp-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200; background: rgba(10,14,39,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
+.lp-modal-overlay.open { display: flex; }
+.lp-modal { background: var(--navy-light); border: 1px solid var(--card-border); border-radius: 16px; max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+.lp-modal-header { background: var(--navy-mid); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 2; }
+.lp-modal-header h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.lp-modal-close { background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: var(--white); border-radius: 6px; padding: 4px 12px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+.lp-modal-close:hover { background: rgba(255,255,255,0.12); }
+.lp-modal-body { padding: 24px; font-size: 14px; line-height: 1.8; color: var(--gray); }
+.lp-modal-body h4 { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--white); margin: 20px 0 8px; }
+.lp-modal-body h4:first-child { margin-top: 0; }
+.lp-modal-body p { margin-bottom: 10px; }
+.contact-card { display: flex; flex-direction: column; gap: 16px; }
+.contact-item { display: flex; align-items: center; gap: 14px; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; }
+.contact-item-icon { font-size: 24px; width: 44px; height: 44px; background: rgba(163,245,98,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contact-item-label { font-size: 11px; color: var(--gray); }
+.contact-item-value { font-weight: 600; color: var(--white); font-size: 14px; margin-top: 2px; }
+.contact-item-value a { color: var(--lime); text-decoration: none; }
+.contact-item-value a:hover { text-decoration: underline; }
+
+footer { padding: 40px 0; border-top: 1px solid var(--card-border); }
+footer .container { display: flex; justify-content: space-between; align-items: center; }
+.footer-left { font-size: 13px; color: var(--gray); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { color: var(--gray); text-decoration: none; font-size: 13px; transition: color 0.25s; }
+.footer-links a:hover { color: var(--white); }
+
+@media (max-width: 900px) {
+  .hero .container { grid-template-columns: 1fr; text-align: center; }
+  .hero-sub { margin-left: auto; margin-right: auto; }
+  .hero-ctas { justify-content: center; }
+  .hero-stats { justify-content: center; }
+  .hero-visual { max-width: 500px; margin: 0 auto; }
+  .problem-grid, .features-grid, .testimonials-grid, .steps { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .steps::before { display: none; }
+  .nav-links { display: none; }
+  .nav-mobile { display: block; }
+  .d-stats { grid-template-columns: repeat(2, 1fr); }
+  .d-call-body { grid-template-columns: 1fr; }
+  .demo-ribbon { display: none; }
+}
+@media (max-width: 600px) {
+  .section { padding: 64px 0; }
+  .m-stats { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats { gap: 24px; }
+  footer .container { flex-direction: column; gap: 16px; text-align: center; }
+  .d-products { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<nav id="nav"><div class="container"><a href="#" class="nav-logo"><span>🏟️</span> ClubPartner</a><div class="nav-links"><a href="#probleme">Le problème</a><a href="#fonctionnalites">Fonctionnalités</a><a href="#preview">Voir l'outil</a><a href="#tarif">Tarif</a><a href="#faq">FAQ</a><a href="https://calendly.com/VOTRE-LIEN" target="_blank" class="btn btn-primary">Demander une démo</a><a href="https://VOTRE-APP.netlify.app" target="_blank" class="btn btn-ghost">Se connecter</a></div><button class="nav-mobile" onclick="document.querySelector('.nav-links').classList.toggle('mobile-open')" aria-label="Menu">☰</button></div></nav>
+
+<section class="hero"><div class="container"><div class="hero-content"><div class="hero-badge">🚀 L'outil pensé pour les clubs</div><h1>Fini les tableaux Excel pour gérer vos <span class="highlight">partenaires</span></h1><p class="hero-sub">ClubPartner est le CRM qui aide les clubs sportifs à prospecter, signer et suivre leurs partenariats et mécénats — de A à Z, saison après saison.</p><div class="hero-ctas"><a href="https://calendly.com/VOTRE-LIEN" target="_blank" class="btn btn-primary btn-large">Demander une démo →</a><a href="#preview" class="btn btn-ghost btn-large">Voir l'outil ↓</a></div><div class="hero-stats"><div><div class="hero-stat-num">120+</div><div class="hero-stat-label">Clubs équipés</div></div><div><div class="hero-stat-num">8 500</div><div class="hero-stat-label">Partenaires gérés</div></div><div><div class="hero-stat-num">2,4M€</div><div class="hero-stat-label">De CA suivi</div></div></div></div><div class="hero-visual"><div class="mockup"><div class="mockup-bar"><div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div><span style="font-size:12px;color:var(--gray);margin-left:8px">ClubPartner</span></div><div class="mockup-body"><div class="m-hdr"><div class="m-title">📊 Tableau de bord</div><div class="m-season">2025-2026</div></div><div class="m-stats"><div class="m-stat-card"><div class="m-stat-icon">🎯</div><div class="m-stat-val" style="color:var(--blue)">47</div><div class="m-stat-lbl">Prospects</div></div><div class="m-stat-card"><div class="m-stat-icon">🤝</div><div class="m-stat-val" style="color:var(--ok)">23</div><div class="m-stat-lbl">Partenaires</div></div><div class="m-stat-card"><div class="m-stat-icon">📋</div><div class="m-stat-val" style="color:var(--warn)">5</div><div class="m-stat-lbl">Actions</div></div><div class="m-stat-card"><div class="m-stat-icon">💰</div><div class="m-stat-val" style="color:var(--lime)">42 800€</div><div class="m-stat-lbl">CA HT</div></div></div><div class="m-prog"><div class="m-prog-title">🎯 Objectif — 78%</div><div class="m-prog-bar"><div class="m-prog-fill" style="width:78%"></div></div></div></div></div></div></div></section>
+
+<section class="section problem" id="probleme"><div class="container"><div class="section-label anim">Le problème</div><div class="section-title anim anim-d1">Gérer vos sponsors sur Excel,<br>ça ne <span style="color:#ff6b6b">tient plus</span></div><p class="section-sub anim anim-d2">Chaque saison, c'est la même galère. Fichiers perdus, relances oubliées, aucune vue d'ensemble.</p><div class="problem-grid"><div class="problem-card anim anim-d2"><div class="problem-icon">📁</div><h3>Données éparpillées</h3><p>Un fichier Excel par-ci, un carnet par-là, des mails perdus… Impossible de savoir où on en est.</p></div><div class="problem-card anim anim-d3"><div class="problem-icon">🔔</div><h3>Relances oubliées</h3><p>Pas de rappels, pas de suivi. Des prospects chauds qui refroidissent sans rappel.</p></div><div class="problem-card anim anim-d4"><div class="problem-icon">📊</div><h3>Zéro visibilité</h3><p>Combien de CA cette saison ? Qui a signé ? Le bureau navigue à l'aveugle.</p></div></div></div></section>
+
+<section class="section" id="fonctionnalites"><div class="container"><div class="section-label anim">Fonctionnalités</div><div class="section-title anim anim-d1">Tout ce qu'il faut pour <span class="highlight">développer</span><br>vos partenariats</div><p class="section-sub anim anim-d2">De la première prise de contact jusqu'au dernier paiement.</p><div class="features-grid"><div class="feature-card anim anim-d1"><div class="feature-icon">📞</div><h3>Prospection & mode appel</h3><p>Appelez avec un script personnalisé. Notes, statut, prochaine action — en un clic.</p><span class="feature-tag">Mode appel intégré</span></div><div class="feature-card anim anim-d2"><div class="feature-icon">📝</div><h3>Contrats & devis PDF</h3><p>PDF pro prêts à envoyer. Produits multi-saisons, prix négociés, tout pré-rempli.</p><span class="feature-tag">Génération auto</span></div><div class="feature-card anim anim-d3"><div class="feature-icon">🧾</div><h3>Facturation & comptabilité</h3><p>Factures numérotées, TVA, écritures comptables exportables.</p><span class="feature-tag">Export comptable</span></div><div class="feature-card anim anim-d4"><div class="feature-icon">💰</div><h3>Suivi des paiements</h3><p>Qui a payé, qui est en retard. Relances programmées.</p></div><div class="feature-card anim anim-d5"><div class="feature-icon">🎯</div><h3>Dashboard & objectifs</h3><p>Objectifs par saison et par commercial. Progression en temps réel.</p></div><div class="feature-card anim anim-d1"><div class="feature-icon">💜</div><h3>Mécénat intelligent</h3><p>Contrôle auto de la règle des 25%. Partenariat et mécénat dans le même outil.</p><span class="feature-tag">Contrôle 25% auto</span></div></div><div style="display:flex;gap:20px;margin-top:20px;flex-wrap:wrap"><div style="flex:1;min-width:260px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:24px;display:flex;align-items:center;gap:16px" class="anim anim-d2"><div style="font-size:32px">🏟️</div><div><div style="font-family:var(--font-display);font-weight:700;font-size:15px">Multi-clubs</div><div style="font-size:13px;color:var(--gray);margin-top:2px">Données isolées par club</div></div></div><div style="flex:1;min-width:260px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:24px;display:flex;align-items:center;gap:16px" class="anim anim-d3"><div style="font-size:32px">👥</div><div><div style="font-family:var(--font-display);font-weight:700;font-size:15px">Gestion des rôles</div><div style="font-size:13px;color:var(--gray);margin-top:2px">Admin, commercial, comptable, lecture seule</div></div></div><div style="flex:1;min-width:260px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:24px;display:flex;align-items:center;gap:16px" class="anim anim-d4"><div style="font-size:32px">📅</div><div><div style="font-family:var(--font-display);font-weight:700;font-size:15px">Multi-saisons</div><div style="font-size:13px;color:var(--gray);margin-top:2px">Tarifs gérés saison par saison</div></div></div></div></div></section>
+
+<section class="section demo-section" id="preview"><div class="container"><div style="text-align:center"><div class="section-label anim">Démo interactive</div><div class="section-title anim anim-d1">Testez l'outil <span class="highlight">maintenant</span></div><p class="section-sub anim anim-d2" style="margin:0 auto">Explorez l'interface comme si vous étiez connecté. Cliquez sur les onglets, ouvrez le mode appel, découvrez chaque fonctionnalité.</p></div>
+<div class="demo-wrapper anim anim-d3"><div class="demo-ribbon">DÉMO</div><div class="demo-topbar"><div class="demo-topbar-left"><div class="demo-topbar-logo">🏟️ ClubPartner</div><div class="demo-topbar-season">Saison 2025-2026</div></div><div class="demo-topbar-right"><span class="demo-topbar-user">Paul Durand</span><span class="demo-topbar-btn">👥</span><span class="demo-topbar-btn">⚙️</span><span class="demo-topbar-btn">📤</span></div></div>
+<div class="demo-nav"><button class="demo-nav-btn active" data-tab="dashboard">📊 Bord</button><button class="demo-nav-btn" data-tab="prospects">🎯 Prospects</button><button class="demo-nav-btn" data-tab="partners">🤝 Partenaires</button><button class="demo-nav-btn" data-tab="actions">📋 Actions</button><button class="demo-nav-btn" data-tab="contracts">📝 Contrats</button><button class="demo-nav-btn" data-tab="invoices">🧾 Factures</button><button class="demo-nav-btn" data-tab="products">📦 Stocks</button></div>
+<div class="demo-body">
+<div class="d-call-overlay" id="callOverlay"><div class="d-call-modal"><div class="d-call-header"><h3>📞 Appel — <span id="callCompanyName"></span></h3><button class="d-call-close" onclick="closeCall()">✕</button></div><div class="d-call-body"><div><div class="d-card"><div style="font-weight:800;font-size:14px" id="callCoName2"></div><div style="font-size:11px;color:var(--gray)" id="callCoSector"></div><div style="margin-top:8px"><div style="font-size:13px">👤 <strong id="callContact"></strong></div><div class="d-call-phone">📞 <span id="callPhone"></span></div><div style="font-size:11px;color:var(--gray);margin-top:6px" id="callEmail"></div></div><div style="margin-top:8px;display:flex;gap:4px"><span class="d-badge" id="callStatus"></span><span class="d-badge" id="callType"></span></div></div><div class="d-call-result"><div class="d-call-result-title">✍️ Résultat de l'appel</div><textarea class="d-call-textarea" placeholder="Notes de l'appel..."></textarea><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><select class="d-call-select"><option>Nouveau</option><option>Intéressé</option><option>À rappeler</option><option>RDV pris</option><option>Refusé</option></select><input type="date" class="d-call-select" value="2025-09-15"></div><button class="d-call-save" onclick="closeCall()">💾 Enregistrer le résultat</button></div></div><div class="d-call-script"><div class="d-call-script-title">🤝 Script Partenariat</div><div class="d-call-script-line"><b>Bonjour [contact],</b></div><div class="d-call-script-line">Je suis Paul Durand, du <b>FC Caen</b>.</div><div class="d-call-script-line">&nbsp;</div><div class="d-call-script-line"><b>Présentation du club :</b></div><div class="d-call-script-line">• 450 licenciés, de l'école de foot aux seniors</div><div class="d-call-script-line">• 35 matchs à domicile par saison</div><div class="d-call-script-line">• 800 spectateurs en moyenne</div><div class="d-call-script-line">&nbsp;</div><div class="d-call-script-line"><b>Nos offres :</b></div><div class="d-call-script-line">• Panneaux bord de terrain</div><div class="d-call-script-line">• Logo maillot + site web + réseaux</div><div class="d-call-script-line">• Loges VIP + invitations matchs</div><div class="d-call-script-line">&nbsp;</div><div class="d-call-script-line"><b>Prochaine étape :</b></div><div class="d-call-script-line">Je vous envoie notre plaquette et on fixe un RDV ?</div></div></div></div></div>
+
+<div class="demo-tab active" id="tab-dashboard"><div class="d-stats"><div class="d-stat"><div class="d-stat-icon">🎯</div><div class="d-stat-val" style="color:var(--blue)">47</div><div class="d-stat-lbl">Prospects</div></div><div class="d-stat"><div class="d-stat-icon">🤝</div><div class="d-stat-val" style="color:var(--ok)">23</div><div class="d-stat-lbl">Partenaires</div></div><div class="d-stat"><div class="d-stat-icon">📋</div><div class="d-stat-val" style="color:var(--warn)">5</div><div class="d-stat-lbl">Actions du jour</div></div><div class="d-stat"><div class="d-stat-icon">💰</div><div class="d-stat-val" style="color:var(--lime)">42 800 €</div><div class="d-stat-lbl">CA HT total</div></div></div>
+<div class="d-card"><div class="d-title" style="margin-bottom:12px">🎯 Objectifs saison 2025-2026</div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600;color:var(--blue)">🤝 Partenariat</span><span><strong>28 400 €</strong> / 40 000 € <span style="font-weight:700;color:var(--warn)">71%</span></span></div><div class="d-bar-box"><div class="d-bar" style="width:71%;background:var(--blue)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;margin-top:12px;margin-bottom:4px"><span style="font-weight:600;color:var(--purple)">💜 Mécénat</span><span><strong>14 400 €</strong> / 15 000 € <span style="font-weight:700;color:var(--ok)">96%</span></span></div><div class="d-bar-box"><div class="d-bar" style="width:96%;background:var(--purple)"></div></div><div style="border-top:2px solid var(--card-border);margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:800">📊 TOTAL</span><span><strong style="font-size:16px">42 800 €</strong> / 55 000 € <span style="font-weight:800;font-size:14px;color:var(--warn)">78%</span></span></div><div class="d-bar-box" style="height:12px;margin-top:6px"><div class="d-bar" style="width:78%;background:linear-gradient(90deg,var(--lime),var(--blue))"></div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="d-card"><div class="d-title" style="margin-bottom:10px">👤 Top commerciaux</div><div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--card-border)"><span><strong>Paul D.</strong></span><span style="color:var(--lime);font-weight:700">18 200 €</span></div><div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--card-border)"><span><strong>Marie L.</strong></span><span style="color:var(--blue);font-weight:700">14 600 €</span></div><div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0"><span><strong>Thomas R.</strong></span><span style="color:var(--purple);font-weight:700">10 000 €</span></div></div><div class="d-card"><div class="d-title" style="margin-bottom:10px">🏦 Encaissements</div><div style="display:flex;gap:16px;text-align:center"><div style="flex:1"><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ok)">31 200 €</div><div style="font-size:10px;color:var(--gray)">Encaissé</div></div><div style="flex:1"><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--warn)">20 160 €</div><div style="font-size:10px;color:var(--gray)">Reste</div></div></div><div class="d-bar-box" style="margin-top:10px"><div class="d-bar" style="width:61%;background:var(--ok)"></div></div><div style="text-align:center;font-size:10px;color:var(--gray);margin-top:4px">61% encaissé</div></div></div></div>
+
+<div class="demo-tab" id="tab-prospects"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="d-title">🎯 Prospects (47)</div><div style="display:flex;gap:6px"><button class="d-sm-btn">📥</button><button class="d-sm-btn" style="background:rgba(163,245,98,0.15);color:var(--lime);font-weight:700">+ Prospect</button></div></div><div class="d-search"><input class="d-search-input" placeholder="🔍 Rechercher entreprise, contact..."><select class="d-search-select"><option>Tous secteurs</option><option>Commerce</option><option>BTP</option><option>Restauration</option></select><select class="d-search-select"><option>Tous statuts</option><option>Nouveau</option><option>Intéressé</option><option>À rappeler</option></select></div><div id="prospectsList"></div></div>
+
+<div class="demo-tab" id="tab-partners"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="d-title">🤝 Partenaires (23)</div></div><div id="partnersList"></div></div>
+
+<div class="demo-tab" id="tab-actions"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="d-title">📋 Actions du jour (5)</div><div style="display:flex;gap:6px"><select class="d-search-select"><option>Toutes catégories</option><option>Prospection</option><option>Partenaires</option><option>Contrats</option><option>Facturation</option></select><select class="d-search-select"><option>Tous</option><option>Paul D.</option><option>Marie L.</option><option>Thomas R.</option></select></div></div>
+<div id="actionsList"></div>
+</div>
+
+<div class="demo-tab" id="tab-contracts"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="d-title">📝 Contrats (18)</div><button class="d-sm-btn" style="background:rgba(163,245,98,0.15);color:var(--lime);font-weight:700">+ Contrat</button></div><table class="d-table"><thead><tr><th>Entreprise</th><th>Type</th><th>Saisons</th><th>Statut</th><th class="d-table-right">HT</th><th class="d-table-right">PDF</th></tr></thead><tbody id="contractsBody"></tbody></table></div>
+
+<div class="demo-tab" id="tab-invoices"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="d-title">🧾 Factures (14)</div><button class="d-sm-btn">📤 Export comptable</button></div><div id="invoicesList"></div></div>
+
+<div class="demo-tab" id="tab-products"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="d-title">📦 Produits & Stocks</div><button class="d-sm-btn" style="background:rgba(163,245,98,0.15);color:var(--lime);font-weight:700">+ Produit</button></div><div class="d-products" id="productsList"></div></div>
+</div></div></div></section>
+
+<section class="section" id="comment"><div class="container" style="text-align:center"><div class="section-label anim">Comment ça marche</div><div class="section-title anim anim-d1">Opérationnel en <span class="highlight">5 minutes</span></div><p class="section-sub anim anim-d2" style="margin:0 auto">Pas de formation. Créez votre compte et c'est parti.</p><div class="steps"><div class="step anim anim-d2"><div class="step-num">1</div><h3>Créez votre club</h3><p>Nom, produits sponsoring, invitez votre équipe.</p></div><div class="step anim anim-d3"><div class="step-num">2</div><h3>Importez vos prospects</h3><p>CSV ou saisie manuelle. Prospectez avec le mode appel.</p></div><div class="step anim anim-d4"><div class="step-num">3</div><h3>Signez et facturez</h3><p>Contrat PDF, facturation, suivi des paiements.</p></div></div></div></section>
+
+<section class="section testimonials"><div class="container"><div style="text-align:center"><div class="section-label anim">Témoignages</div><div class="section-title anim anim-d1">Ils gèrent leurs partenariats<br>avec <span class="highlight">ClubPartner</span></div></div><div class="testimonials-grid"><div class="testimonial-card anim anim-d2"><div class="testimonial-quote">On gérait nos 40 sponsors sur un Google Sheet. En 2 mois avec ClubPartner, on a signé 12 nouveaux partenaires grâce au mode appel.</div><div class="testimonial-author"><div class="testimonial-avatar" style="background:rgba(163,245,98,0.15);color:var(--lime)">⚽</div><div><div class="testimonial-name">Laurent M.</div><div class="testimonial-role">Président — FC Villeurbanne</div></div></div></div><div class="testimonial-card anim anim-d3"><div class="testimonial-quote">Le PDF de contrat auto, c'est le gain n°1. Avant : 1h par contrat sur Word. Maintenant : 2 clics.</div><div class="testimonial-author"><div class="testimonial-avatar" style="background:rgba(78,124,255,0.15);color:var(--blue)">🏉</div><div><div class="testimonial-name">Sophie D.</div><div class="testimonial-role">Trésorière — Rugby Club Agenais</div></div></div></div><div class="testimonial-card anim anim-d3"><div class="testimonial-quote">Enfin un outil qui comprend le mécénat sportif. Le contrôle auto des 25% nous évite des erreurs coûteuses.</div><div class="testimonial-author"><div class="testimonial-avatar" style="background:rgba(139,92,246,0.15);color:var(--purple)">🏀</div><div><div class="testimonial-name">Marc B.</div><div class="testimonial-role">Dir. sportif — Basket Club Nantais</div></div></div></div></div></div></section>
+
+<!-- PRICING -->
+<section class="section" id="tarif">
+<div class="container" style="text-align:center">
+<div class="section-label anim">Tarif</div>
+<div class="section-title anim anim-d1">Un seul tarif, <span class="highlight">tout inclus</span></div>
+<p class="section-sub anim anim-d2" style="margin:0 auto">Pas de plans compliqués. Toutes les fonctionnalités, tous les utilisateurs, sans surprise.</p>
+<div class="pricing-card anim anim-d3">
+<div class="pricing-badge">🚀 Offre de lancement</div>
+<div class="pricing-old">1 997 €</div>
+<div class="pricing-amount">997 <span>€</span></div>
+<div class="pricing-period">par an · HT</div>
+<div class="pricing-divider"></div>
+<div class="pricing-features">
+<div class="pricing-feature"><div class="pricing-check">✓</div>Toutes les fonctionnalités incluses</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Utilisateurs illimités (admin, commercial, comptable…)</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Prospection avec mode appel et scripts personnalisés</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Contrats et devis PDF automatiques</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Facturation avec export comptable</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Suivi des paiements et relances</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Dashboard et objectifs par saison</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Gestion multi-saisons</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Mécénat avec contrôle automatique des 25%</div>
+<div class="pricing-feature"><div class="pricing-check">✓</div>Mises à jour et support inclus</div>
+</div>
+<a href="#demo" class="btn btn-primary btn-large" style="width:100%">Demander une démo →</a>
+<p style="font-size:12px;color:var(--gray);margin-top:14px">Soit seulement 83 €/mois · Rentabilisé dès le 1er partenaire signé</p>
+</div>
+</div>
+</section>
+
+<section class="section" id="faq"><div class="container" style="text-align:center"><div class="section-label anim">FAQ</div><div class="section-title anim anim-d1">Questions fréquentes</div><div class="faq-list" style="text-align:left"><div class="faq-item anim anim-d1"><button class="faq-question" onclick="this.parentElement.classList.toggle('open')">C'est adapté à quel type de club ?<span class="faq-chevron">+</span></button><div class="faq-answer"><div class="faq-answer-inner">Tous les clubs sportifs associatifs et semi-pro : foot, rugby, basket, hand, volley… Tout club qui cherche des sponsors ou mécènes.</div></div></div><div class="faq-item anim anim-d2"><button class="faq-question" onclick="this.parentElement.classList.toggle('open')">Combien de personnes peuvent accéder à l'outil ?<span class="faq-chevron">+</span></button><div class="faq-answer"><div class="faq-answer-inner">Autant que nécessaire ! Chaque personne a son propre compte avec un rôle adapté à sa mission : <strong>Administrateur</strong> (accès complet, paramétrage du club), <strong>Commercial</strong> (prospection, gestion des partenaires), <strong>Comptable</strong> (factures, paiements, export comptable) ou <strong>Lecture seule</strong> (consultation sans modification, idéal pour le bureau directeur ou le secrétariat). Chacun voit uniquement ce dont il a besoin.</div></div></div><div class="faq-item anim anim-d3"><button class="faq-question" onclick="this.parentElement.classList.toggle('open')">Comment marche la génération de contrats PDF ?<span class="faq-chevron">+</span></button><div class="faq-answer"><div class="faq-answer-inner">Sélectionnez produits, quantités et prix. ClubPartner génère un PDF pro avec toutes les infos, prêt à envoyer par mail.</div></div></div><div class="faq-item anim anim-d4"><button class="faq-question" onclick="this.parentElement.classList.toggle('open')">Quelle différence entre partenariat et mécénat ?<span class="faq-chevron">+</span></button><div class="faq-answer"><div class="faq-answer-inner">Le partenariat implique des contreparties (visibilité). Le mécénat est un don avec contreparties max 25% (avantage fiscal). ClubPartner gère les deux et contrôle la règle des 25%.</div></div></div><div class="faq-item anim anim-d5"><button class="faq-question" onclick="this.parentElement.classList.toggle('open')">Mes données sont sécurisées ?<span class="faq-chevron">+</span></button><div class="faq-answer"><div class="faq-answer-inner">Oui. Données isolées par club, hébergement Supabase (Europe), authentification sécurisée et accès par rôle.</div></div></div></div></div></section>
+
+<section class="section final-cta" id="demo"><div class="container"><div class="final-cta-box anim"><div class="section-label" style="text-align:center">Prêt à passer à l'action ?</div><div class="section-title" style="text-align:center;max-width:600px;margin:0 auto 20px">Structurez vos partenariats<br>dès la <span class="highlight">prochaine saison</span></div><p class="section-sub" style="text-align:center;margin:0 auto 36px">Démo personnalisée de 20 min. On vous montre comment ClubPartner transforme votre recherche de sponsors.</p><div style="display:flex;justify-content:center"><a href="https://calendly.com/VOTRE-LIEN" target="_blank" class="btn btn-primary btn-large">📅 Demander une démo →</a></div><p style="font-size:13px;color:var(--gray);margin-top:20px;text-align:center">Gratuit · Sans engagement · Réponse sous 24h</p></div></div></section>
+
+<footer><div class="container"><div class="footer-left">🏟️ ClubPartner © 2025 — Fait avec ❤️ pour les clubs sportifs</div><div class="footer-links"><a href="#" onclick="event.preventDefault();document.getElementById('contactModal').classList.add('open')">Contact</a><a href="#" onclick="event.preventDefault();document.getElementById('legalModal').classList.add('open')">Mentions légales</a></div></div></footer>
+
+<!-- Contact Modal -->
+<div class="lp-modal-overlay" id="contactModal" onclick="this.classList.remove('open')">
+<div class="lp-modal" onclick="event.stopPropagation()">
+<div class="lp-modal-header"><h3>📧 Nous contacter</h3><button class="lp-modal-close" onclick="document.getElementById('contactModal').classList.remove('open')">✕</button></div>
+<div class="lp-modal-body">
+<div class="contact-card">
+<div class="contact-item"><div class="contact-item-icon">🏟️</div><div><div class="contact-item-label">Structure</div><div class="contact-item-value">ClubPartner</div></div></div>
+<div class="contact-item"><div class="contact-item-icon">👤</div><div><div class="contact-item-label">Responsable</div><div class="contact-item-value">Paul Durand</div></div></div>
+<div class="contact-item"><div class="contact-item-icon">📧</div><div><div class="contact-item-label">Email</div><div class="contact-item-value"><a href="mailto:contact@clubpartner.fr">contact@clubpartner.fr</a></div></div></div>
+<div class="contact-item"><div class="contact-item-icon">📞</div><div><div class="contact-item-label">Téléphone</div><div class="contact-item-value"><a href="tel:+33600000000">06 00 00 00 00</a></div></div></div>
+<div class="contact-item"><div class="contact-item-icon">📍</div><div><div class="contact-item-label">Adresse</div><div class="contact-item-value">Rennes, France</div></div></div>
+</div>
+<div style="margin-top:24px;text-align:center"><a href="mailto:contact@clubpartner.fr" class="btn btn-primary">📧 Envoyer un email</a></div>
+</div>
+</div>
+</div>
+
+<!-- Mentions Légales Modal -->
+<div class="lp-modal-overlay" id="legalModal" onclick="this.classList.remove('open')">
+<div class="lp-modal" onclick="event.stopPropagation()">
+<div class="lp-modal-header"><h3>📜 Mentions légales</h3><button class="lp-modal-close" onclick="document.getElementById('legalModal').classList.remove('open')">✕</button></div>
+<div class="lp-modal-body">
+<h4>1. Éditeur du site</h4>
+<p>Le site ClubPartner (ci-après « le Site ») est édité par :<br>
+<strong>ClubPartner</strong><br>
+Responsable de la publication : Paul Durand<br>
+Adresse : Rennes, France<br>
+Email : contact@clubpartner.fr<br>
+Téléphone : 06 00 00 00 00</p>
+
+<h4>2. Hébergement</h4>
+<p>Le Site est hébergé par :<br>
+<strong>Netlify, Inc.</strong><br>
+512 2nd Street, Suite 200, San Francisco, CA 94107, États-Unis<br>
+Site web : www.netlify.com</p>
+
+<h4>3. Propriété intellectuelle</h4>
+<p>L'ensemble des contenus présents sur le Site (textes, images, logos, graphismes, icônes, logiciels) sont la propriété exclusive de ClubPartner ou de ses partenaires et sont protégés par les lois françaises et internationales relatives à la propriété intellectuelle. Toute reproduction, représentation ou diffusion, totale ou partielle, est interdite sans autorisation préalable écrite.</p>
+
+<h4>4. Protection des données personnelles</h4>
+<p>Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données personnelles. Les données collectées via le Site (adresse email, nom, coordonnées) sont utilisées uniquement dans le cadre de la relation commerciale et ne sont en aucun cas transmises à des tiers sans votre consentement. Pour exercer vos droits, contactez-nous à : contact@clubpartner.fr</p>
+
+<h4>5. Cookies</h4>
+<p>Le Site n'utilise pas de cookies publicitaires ni de traceurs tiers. Seuls des cookies techniques strictement nécessaires au fonctionnement du service peuvent être utilisés.</p>
+
+<h4>6. Limitation de responsabilité</h4>
+<p>ClubPartner s'efforce de fournir des informations exactes et à jour sur le Site. Toutefois, ClubPartner ne saurait être tenu responsable des erreurs, omissions ou résultats obtenus suite à l'utilisation de ces informations. L'utilisation du Site se fait sous la seule responsabilité de l'utilisateur.</p>
+
+<h4>7. Droit applicable</h4>
+<p>Les présentes mentions légales sont soumises au droit français. En cas de litige, les tribunaux de Rennes seront seuls compétents.</p>
+
+<p style="margin-top:20px;font-size:12px;color:var(--gray)">Dernière mise à jour : Janvier 2025</p>
+</div>
+</div>
+</div>
+
+<script>
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>40));
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.anim').forEach(el=>obs.observe(el));
+const ms=document.createElement('style');
+ms.textContent='.nav-links.mobile-open{display:flex!important;flex-direction:column;position:fixed;top:60px;left:0;right:0;background:rgba(10,14,39,0.97);backdrop-filter:blur(20px);padding:24px;gap:20px;border-bottom:1px solid var(--card-border);z-index:200}';
+document.head.appendChild(ms);
+
+const prospects=[
+{company:"Boulangerie Martin",sector:"Commerce",contact:"Jean Martin",phone:"06 12 34 56 78",email:"jean@boulangeriemartin.fr",status:"Nouveau",type:"Partenariat",member:"Paul D.",border:"var(--card-border)"},
+{company:"Garage Dupont Auto",sector:"Automobile",contact:"Pierre Dupont",phone:"06 98 76 54 32",email:"p.dupont@garage-dupont.fr",status:"Intéressé",type:"Partenariat",member:"Marie L.",border:"var(--ok)"},
+{company:"Cabinet Moreau & Fils",sector:"Services",contact:"Claire Moreau",phone:"06 55 44 33 22",email:"c.moreau@cabinet-moreau.fr",status:"RDV pris",type:"Mécénat",member:"Paul D.",border:"var(--purple)"},
+{company:"Restaurant Le Comptoir",sector:"Restauration",contact:"Marc Lefèvre",phone:"06 77 88 99 00",email:"marc@lecomptoir.fr",status:"À rappeler",type:"Partenariat",member:"Thomas R.",border:"var(--warn)"},
+{company:"Plomberie Girard",sector:"BTP",contact:"Luc Girard",phone:"06 11 22 33 44",email:"luc@plomberiegirard.fr",status:"Nouveau",type:"Partenariat",member:"Marie L.",border:"var(--card-border)"},
+{company:"Assurances Bernard",sector:"Finance",contact:"Anne Bernard",phone:"06 66 55 44 33",email:"a.bernard@assurances-bernard.fr",status:"Refusé",type:"Mécénat",member:"Paul D.",border:"var(--err)"},
+{company:"Informatique Plus",sector:"IT",contact:"David Chen",phone:"06 22 33 44 55",email:"d.chen@info-plus.fr",status:"Intéressé",type:"Partenariat",member:"Thomas R.",border:"var(--ok)"}
+];
+const partners=[
+{company:"SuperMarché Leclerc",type:"Partenariat",amount:"4 200 €",status:"Signé",products:"Panneau terrain + Logo maillot"},
+{company:"Crédit Mutuel Caen",type:"Mécénat",amount:"5 000 €",status:"Signé",products:"Don avec reçu fiscal"},
+{company:"SFR Entreprises",type:"Partenariat",amount:"3 800 €",status:"Signé",products:"Panneau terrain + Loge VIP"},
+{company:"Pharmacie Centrale",type:"Partenariat",amount:"1 500 €",status:"Signé",products:"Logo maillot"},
+{company:"Notaire Petit",type:"Mécénat",amount:"3 000 €",status:"Signé",products:"Don avec reçu fiscal"},
+{company:"Électricité Martin",type:"Partenariat",amount:"2 400 €",status:"Signé",products:"Panneau terrain"}
+];
+const contractsData=[
+{company:"SuperMarché Leclerc",type:"Partenariat",seasons:"2025-2026",status:"Signé",amount:"4 200 €"},
+{company:"Crédit Mutuel Caen",type:"Mécénat",seasons:"2025-2026",status:"Signé",amount:"5 000 €"},
+{company:"SFR Entreprises",type:"Partenariat",seasons:"2025-2027",status:"Signé",amount:"7 600 €"},
+{company:"Pharmacie Centrale",type:"Partenariat",seasons:"2025-2026",status:"En attente",amount:"1 500 €"},
+{company:"Notaire Petit",type:"Mécénat",seasons:"2025-2026",status:"Signé",amount:"3 000 €"},
+{company:"Électricité Martin",type:"Partenariat",seasons:"2025-2026",status:"Brouillon",amount:"2 400 €"}
+];
+const invoicesData=[
+{num:"FA-2025-001",company:"SuperMarché Leclerc",date:"15/09/2025",ht:"4 200 €",ttc:"5 040 €",status:"Payée"},
+{num:"FA-2025-002",company:"Crédit Mutuel Caen",date:"20/09/2025",ht:"5 000 €",ttc:"5 000 €",status:"Payée"},
+{num:"FA-2025-003",company:"SFR Entreprises",date:"01/10/2025",ht:"3 800 €",ttc:"4 560 €",status:"En attente"},
+{num:"FA-2025-004",company:"Pharmacie Centrale",date:"15/10/2025",ht:"1 500 €",ttc:"1 800 €",status:"En retard"},
+{num:"FA-2025-005",company:"Notaire Petit",date:"01/11/2025",ht:"3 000 €",ttc:"3 000 €",status:"Payée"}
+];
+const productsData=[
+{name:"Panneau bord terrain",cat:"Visibilité",price:"800 €",stock:20,sold:14},
+{name:"Logo maillot dos",cat:"Visibilité",price:"2 500 €",stock:1,sold:1},
+{name:"Logo maillot manches",cat:"Visibilité",price:"1 200 €",stock:2,sold:2},
+{name:"Loge VIP (saison)",cat:"Hospitalité",price:"1 500 €",stock:4,sold:2},
+{name:"Page pub programme",cat:"Communication",price:"400 €",stock:15,sold:8},
+{name:"Bâche entrée stade",cat:"Visibilité",price:"1 800 €",stock:2,sold:1},
+{name:"Post réseaux sociaux",cat:"Digital",price:"200 €",stock:30,sold:12},
+{name:"Logo site web",cat:"Digital",price:"300 €",stock:10,sold:6}
+];
+
+const actionsData=[
+{type:"Rappeler Garage Dupont Auto",category:"Prospection",date:"Aujourd'hui",assignee:"Marie L.",done:false,company:"Garage Dupont Auto",icon:"🎯",catColor:"var(--blue)"},
+{type:"Envoyer plaquette sponsoring",category:"Prospection",date:"Aujourd'hui",assignee:"Paul D.",done:false,company:"Informatique Plus",icon:"🎯",catColor:"var(--blue)"},
+{type:"Relancer facture FA-2025-004",category:"Facturation",date:"Aujourd'hui",assignee:"Paul D.",done:false,company:"Pharmacie Centrale",icon:"🧾",catColor:"var(--warn)"},
+{type:"Préparer contrat saison 2026-2027",category:"Contrats",date:"Aujourd'hui",assignee:"Marie L.",done:false,company:"SFR Entreprises",icon:"📝",catColor:"var(--purple)"},
+{type:"Installer panneau bord de terrain",category:"Partenaires",date:"Aujourd'hui",assignee:"Thomas R.",done:false,company:"SuperMarché Leclerc",icon:"🤝",catColor:"var(--ok)"},
+{type:"RDV avec Claire Moreau",category:"Prospection",date:"Demain",assignee:"Paul D.",done:false,company:"Cabinet Moreau & Fils",icon:"🎯",catColor:"var(--blue)"},
+{type:"Vérifier paiement reçu",category:"Facturation",date:"Demain",assignee:"Paul D.",done:false,company:"Crédit Mutuel Caen",icon:"🧾",catColor:"var(--warn)"},
+{type:"Renouveler contrat saison",category:"Contrats",date:"25/09",assignee:"Marie L.",done:false,company:"Notaire Petit",icon:"📝",catColor:"var(--purple)"},
+{type:"Envoi reçu fiscal mécénat",category:"Partenaires",date:"28/09",assignee:"Thomas R.",done:false,company:"Crédit Mutuel Caen",icon:"🤝",catColor:"var(--ok)"},
+{type:"Appeler boulangerie Martin",category:"Prospection",date:"Hier",assignee:"Paul D.",done:true,company:"Boulangerie Martin",icon:"🎯",catColor:"var(--blue)"}
+];
+
+const sb=(s)=>({Nouveau:"new",Intéressé:"interested","RDV pris":"rdv","À rappeler":"callback",Refusé:"refused",Signé:"signed","En attente":"pending",Brouillon:"draft",Payée:"paid","En retard":"unpaid"}[s]||"new");
+
+document.getElementById('prospectsList').innerHTML=prospects.map((p,i)=>'<div class="d-prospect" style="border-left-color:'+p.border+'" onclick="openCall('+i+')"><div class="d-prospect-top"><div><span class="d-prospect-name">'+p.company+'</span><span class="d-prospect-sector">'+p.sector+'</span> <span class="d-badge d-badge-'+sb(p.status)+'">'+p.status+'</span> <span class="d-badge '+(p.type==="Mécénat"?"d-badge-mec":"d-badge-part")+'">'+p.type+'</span></div><div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="d-sm-btn call" onclick="openCall('+i+')">📞</button><button class="d-sm-btn">✏️</button><button class="d-sm-btn" style="background:rgba(78,124,255,0.1);color:var(--blue)">→ Convertir</button></div></div><div class="d-prospect-meta"><span>👤 '+p.contact+'</span><span>📞 '+p.phone+'</span><span>📧 '+p.email+'</span><span>👷 '+p.member+'</span></div></div>').join('');
+
+document.getElementById('partnersList').innerHTML=partners.map(p=>'<div class="d-prospect" style="border-left-color:var(--ok)"><div class="d-prospect-top"><div><span class="d-prospect-name">'+p.company+'</span> <span class="d-badge '+(p.type==="Mécénat"?"d-badge-mec":"d-badge-part")+'">'+p.type+'</span> <span class="d-badge d-badge-signed">'+p.status+'</span></div><div style="font-family:var(--font-display);font-weight:800;color:var(--lime)">'+p.amount+'</div></div><div class="d-prospect-meta"><span>📦 '+p.products+'</span></div></div>').join('');
+
+document.getElementById('contractsBody').innerHTML=contractsData.map(c=>'<tr><td style="font-weight:700">'+c.company+'</td><td><span class="d-badge '+(c.type==="Mécénat"?"d-badge-mec":"d-badge-part")+'">'+c.type+'</span></td><td style="font-size:11px">'+c.seasons+'</td><td><span class="d-badge d-badge-'+sb(c.status)+'">'+c.status+'</span></td><td class="d-table-right" style="font-weight:700;color:var(--lime)">'+c.amount+'</td><td class="d-table-right"><button class="d-sm-btn">📄</button></td></tr>').join('');
+
+document.getElementById('invoicesList').innerHTML=invoicesData.map(v=>'<div class="d-invoice"><div><strong style="font-size:13px">'+v.num+'</strong><span style="font-size:11px;color:var(--gray);margin-left:8px">'+v.company+'</span></div><div style="font-size:11px;color:var(--gray)">'+v.date+'</div><div style="font-size:12px"><span style="color:var(--gray)">HT</span> <strong>'+v.ht+'</strong> · <span style="color:var(--gray)">TTC</span> <strong>'+v.ttc+'</strong></div><span class="d-badge d-badge-'+sb(v.status)+'">'+v.status+'</span><button class="d-sm-btn">📄</button></div>').join('');
+
+document.getElementById('productsList').innerHTML=productsData.map(p=>{const pct=Math.round(p.sold/p.stock*100);const c=pct>=80?'var(--err)':pct>=50?'var(--warn)':'var(--ok)';return'<div class="d-product-card"><div class="d-product-name">'+p.name+'</div><div class="d-product-cat">'+p.cat+'</div><div class="d-product-price">'+p.price+'</div><div class="d-product-stock">'+p.sold+'/'+p.stock+' vendus</div><div class="d-product-bar"><div class="d-product-bar-fill" style="width:'+pct+'%;background:'+c+'"></div></div></div>';}).join('');
+
+document.getElementById('actionsList').innerHTML=actionsData.map(a=>{var dc=a.date.indexOf("Aujourd")===0?"var(--warn)":a.date==="Hier"?"var(--gray)":"var(--white)";return'<div class="d-prospect" style="border-left-color:'+a.catColor+';opacity:'+(a.done?'0.5':'1')+'"><div class="d-prospect-top"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:16px;cursor:pointer" title="Marquer comme fait">'+(a.done?'✅':'⬜')+'</span><span class="d-prospect-name" style="'+(a.done?'text-decoration:line-through':'')+'">'+a.type+'</span><span class="d-badge" style="background:rgba(255,255,255,0.06);color:'+a.catColor+';border:1px solid '+a.catColor+'30">'+a.icon+' '+a.category+'</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:'+dc+';font-weight:600">'+a.date+'</span></div></div><div class="d-prospect-meta"><span>🏢 '+a.company+'</span><span>👷 '+a.assignee+'</span></div></div>';}).join('');
+
+document.querySelectorAll('.demo-nav-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.demo-nav-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');document.getElementById('tab-'+b.dataset.tab).classList.add('active');});});
+
+function openCall(i){const p=prospects[i];document.getElementById('callCompanyName').textContent=p.company;document.getElementById('callCoName2').textContent=p.company;document.getElementById('callCoSector').textContent=p.sector;document.getElementById('callContact').textContent=p.contact;document.getElementById('callPhone').textContent=p.phone;document.getElementById('callEmail').textContent='📧 '+p.email;const s=document.getElementById('callStatus');s.textContent=p.status;s.className='d-badge d-badge-'+sb(p.status);const t=document.getElementById('callType');t.textContent=p.type;t.className='d-badge '+(p.type==='Mécénat'?'d-badge-mec':'d-badge-part');document.getElementById('callOverlay').classList.add('open');}
+function closeCall(){document.getElementById('callOverlay').classList.remove('open');}
+</script>
+</body>
+</html>
